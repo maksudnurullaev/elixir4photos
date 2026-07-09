@@ -31,6 +31,10 @@ elixir4photos-*.tar
 # Ignore digested assets cache.
 /priv/static/cache_manifest.json
 
+# Ignore uploaded photos (runtime data, not part of the app).
+/priv/static/photos/*
+!/priv/static/photos/.gitkeep
+
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
 /assets/node_modules/

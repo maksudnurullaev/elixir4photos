@@ -17,7 +17,7 @@ defmodule Elixir4photosWeb.Router do
   scope "/", Elixir4photosWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", CameraLive
   end
 
   # Other scopes may use custom stacks.

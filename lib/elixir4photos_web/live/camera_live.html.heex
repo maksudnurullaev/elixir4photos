@@ -1,0 +1,76 @@
+<Layouts.app flash={@flash}>
+  <div class="max-w-2xl mx-auto p-4 space-y-6">
+    <h1 class="text-xl font-bold">Camera</h1>
+
+    <div id="camera-box" phx-hook=".Camera" phx-update="ignore" class="space-y-2">
+      <video
+        id="camera-video"
+        width="450"
+        height="337"
+        autoplay
+        playsinline
+        class="rounded border w-full max-w-md"
+      >
+      </video>
+      <canvas id="camera-canvas" width="450" height="337" class="hidden"></canvas>
+      <div class="flex gap-2">
+        <button id="camera-shoot" type="button" class="btn btn-primary">
+          Take photo
+        </button>
+        <button id="camera-switch" type="button" class="btn">
+          Switch camera
+        </button>
+      </div>
+    </div>
+
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Camera">
+      export default {
+        mounted() {
+          const video = this.el.querySelector("#camera-video")
+          const canvas = this.el.querySelector("#camera-canvas")
+          const shootButton = this.el.querySelector("#camera-shoot")
+          const switchButton = this.el.querySelector("#camera-switch")
+
+          this.facingMode = "user"
+
+          const startCamera = () => {
+            video.srcObject?.getTracks().forEach(track => track.stop())
+
+            navigator.mediaDevices.getUserMedia({
+              video: { facingMode: this.facingMode },
+              audio: false
+            })
+              .then(stream => { video.srcObject = stream })
+              .catch(err => console.error("camera error", err))
+          }
+
+          startCamera()
+
+          shootButton.addEventListener("click", () => {
+            canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height)
+            this.pushEvent("save_photo", { data_url: canvas.toDataURL("image/jpeg") })
+          })
+
+          switchButton.addEventListener("click", () => {
+            this.facingMode = this.facingMode === "user" ? "environment" : "user"
+            startCamera()
+          })
+        },
+        destroyed() {
+          const video = this.el.querySelector("#camera-video")
+          video?.srcObject?.getTracks().forEach(track => track.stop())
+        }
+      }
+    </script>
+
+    <div>
+      <h2 class="text-lg font-semibold mb-2">Saved photos</h2>
+      <div id="photos" phx-update="stream" class="grid grid-cols-3 gap-2">
+        <div id="photos-empty" class="hidden only:block text-sm opacity-70">No photos yet</div>
+        <div :for={{id, photo} <- @streams.photos} id={id}>
+          <img src={photo.url} class="rounded border w-full" />
+        </div>
+      </div>
+    </div>
+  </div>
+</Layouts.app>
