@@ -17,7 +17,7 @@
         <button id="camera-shoot" type="button" class="btn btn-primary">
           Take photo
         </button>
-        <button id="camera-switch" type="button" class="btn">
+        <button id="camera-switch" type="button" class="btn hidden">
           Switch camera
         </button>
       </div>
@@ -40,8 +40,20 @@
               video: { facingMode: this.facingMode },
               audio: false
             })
-              .then(stream => { video.srcObject = stream })
+              .then(stream => {
+                video.srcObject = stream
+                detectMultipleCameras()
+              })
               .catch(err => console.error("camera error", err))
+          }
+
+          const detectMultipleCameras = () => {
+            navigator.mediaDevices.enumerateDevices()
+              .then(devices => {
+                const cameraCount = devices.filter(d => d.kind === "videoinput").length
+                switchButton.classList.toggle("hidden", cameraCount < 2)
+              })
+              .catch(err => console.error("camera enumeration error", err))
           }
 
           startCamera()
